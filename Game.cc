@@ -1,4 +1,5 @@
 #include "Game.h"
+#include <SDL2/SDL_timer.h>
 #include <iostream>
 
 Game::Game() : m_pWindow(nullptr), m_pRenderer(nullptr), m_bRunning(false), m_pTexture(nullptr) {}
@@ -36,7 +37,7 @@ bool Game::init(const char* title, int xpos, int ypos, int width, int height, bo
     }
 
     // Load texture
-    SDL_Surface* pTempSurface = SDL_LoadBMP("assets/rider.bmp");
+    SDL_Surface* pTempSurface = SDL_LoadBMP("assets/animate.bmp");
     if (pTempSurface == nullptr) {
         std::cout << "Failed to load image: " << SDL_GetError() << std::endl;
         SDL_DestroyRenderer(m_pRenderer);
@@ -56,16 +57,26 @@ bool Game::init(const char* title, int xpos, int ypos, int width, int height, bo
         return false;
     }
 
-    // Set initial values for rectangles
-    SDL_QueryTexture(m_pTexture, NULL, NULL, &m_sourceRectangle.w, &m_sourceRectangle.h);
-    m_destinationRectangle.x = m_sourceRectangle.x = 0;
-    m_destinationRectangle.y = m_sourceRectangle.y = 0;
-    m_destinationRectangle.w = m_sourceRectangle.w;
-    m_destinationRectangle.h = m_sourceRectangle.h;
+    // Set initial values for source rectangle
+    m_sourceRectangle.x = 0;
+    m_sourceRectangle.y = 0;
+    m_sourceRectangle.w = 155; // Largura da área visível do tigre
+    m_sourceRectangle.h = 97; // Altura da imagem do tigre
+
+    // Set initial values for destination rectangle
+    m_destinationRectangle.x = 0; // Posição X na janela onde a imagem será renderizada
+    m_destinationRectangle.y = 0; // Posição Y na janela onde a imagem será renderizada
+    m_destinationRectangle.w = m_sourceRectangle.w; // Largura do retângulo de destino
+    m_destinationRectangle.h = m_sourceRectangle.h; // Altura do retângulo de destino
+
 
     std::cout << "Init success\n";
     m_bRunning = true;
     return true;
+}
+
+void Game::update() {
+    m_sourceRectangle.x = 156 * int(((SDL_GetTicks() / 100 ) % 6));
 }
 
 
