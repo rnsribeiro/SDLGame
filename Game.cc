@@ -1,6 +1,7 @@
 #include "Game.h"
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_timer.h>
+#include <SDL2/SDL_image.h>
 #include <iostream>
 
 Game::Game() : m_pWindow(nullptr), m_pRenderer(nullptr), m_bRunning(false), m_pTexture(nullptr) {}
@@ -38,7 +39,7 @@ bool Game::init(const char* title, int xpos, int ypos, int width, int height, bo
     }
 
     // Load texture
-    SDL_Surface* pTempSurface = SDL_LoadBMP("assets/animate.bmp");
+    SDL_Surface* pTempSurface = IMG_Load("assets/animate-alpha.png");
     if (pTempSurface == nullptr) {
         std::cout << "Failed to load image: " << SDL_GetError() << std::endl;
         SDL_DestroyRenderer(m_pRenderer);
@@ -82,6 +83,8 @@ void Game::update() {
 
 
 void Game::render() {
+    SDL_SetRenderDrawColor(m_pRenderer, 255, 0, 0, 255);
+
     SDL_RenderClear(m_pRenderer);
 
     SDL_RenderCopyEx(m_pRenderer, m_pTexture, &m_sourceRectangle, &m_destinationRectangle, 
