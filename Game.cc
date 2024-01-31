@@ -1,4 +1,5 @@
 #include "Game.h"
+#include <SDL2/SDL_render.h>
 #include <SDL2/SDL_timer.h>
 #include <iostream>
 
@@ -60,20 +61,20 @@ bool Game::init(const char* title, int xpos, int ypos, int width, int height, bo
     // Set initial values for source rectangle
     m_sourceRectangle.x = 0;
     m_sourceRectangle.y = 0;
-    m_sourceRectangle.w = 155; // Largura da área visível do tigre
-    m_sourceRectangle.h = 97; // Altura da imagem do tigre
+    m_sourceRectangle.w = 155; // Width of the visible area of the tiger
+    m_sourceRectangle.h = 97; // Height of the tiger image
 
     // Set initial values for destination rectangle
-    m_destinationRectangle.x = 0; // Posição X na janela onde a imagem será renderizada
-    m_destinationRectangle.y = 0; // Posição Y na janela onde a imagem será renderizada
-    m_destinationRectangle.w = m_sourceRectangle.w; // Largura do retângulo de destino
-    m_destinationRectangle.h = m_sourceRectangle.h; // Altura do retângulo de destino
-
+    m_destinationRectangle.x = 0; // X position in the window where the image will be rendered
+    m_destinationRectangle.y = 0; // Y position in the window where the image will be rendered
+    m_destinationRectangle.w = m_sourceRectangle.w; // Width of the destination rectangle
+    m_destinationRectangle.h = m_sourceRectangle.h; // Height of the destination rectangle
 
     std::cout << "Init success\n";
     m_bRunning = true;
     return true;
 }
+
 
 void Game::update() {
     m_sourceRectangle.x = 156 * int(((SDL_GetTicks() / 100 ) % 6));
@@ -82,7 +83,10 @@ void Game::update() {
 
 void Game::render() {
     SDL_RenderClear(m_pRenderer);
-    SDL_RenderCopy(m_pRenderer, m_pTexture, &m_sourceRectangle, &m_destinationRectangle);
+
+    SDL_RenderCopyEx(m_pRenderer, m_pTexture, &m_sourceRectangle, &m_destinationRectangle, 
+        0, 0, SDL_FLIP_HORIZONTAL); // pass in the horizontal flip
+
     SDL_RenderPresent(m_pRenderer);
 }
 
