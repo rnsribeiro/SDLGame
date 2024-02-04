@@ -1,89 +1,90 @@
 #include "Game.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_timer.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_video.h>
 #include <iostream>
 
-Game::Game() : m_pWindow(nullptr), m_pRenderer(nullptr), m_bRunning(false), m_pTexture(nullptr) {}
-
-Game::~Game() {}
-
 bool Game::init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
-    int flags = 0;
+    
+    // attempt to initialize SDL
+    if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {        
+        int flags = 0;
+        
+        if(fullscreen) {
+            flags = SDL_WINDOW_FULLSCREEN;
+        }        
 
-    if (fullscreen) {
-        flags = SDL_WINDOW_FULLSCREEN;
-    }
+        std::cout << "SDL init success\n";
 
-    // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        std::cout << "SDL init fail: " << SDL_GetError() << std::endl;
+        // init the window
+        m_pWindow = SDL_CreateWindow(title, xpos, ypos, width, height, flags);
+
+        if (m_pWindow != 0) { // window init success            
+            std::cout << "window creatrion success\n";
+            m_pRenderer = SDL_CreateRenderer(m_pWindow, -1, 0);
+
+            if(m_pRenderer != 0){ // renderer init success
+                std::cout << "renderer creation success\n";
+                SDL_SetRenderDrawColor(m_pRenderer, 255, 0, 0, 255);
+            } else {
+                std::cout << "renderer init fail\n";
+                return false; // render init fail
+            }
+        } else {
+            std::cout << "window init fail\n";
+            return false; // window init fail
+        }
+    } else {
+        std::cout << "SDL init fail\n";
         return false;
     }
 
-    // Create window
-    m_pWindow = SDL_CreateWindow(title, xpos, ypos, width, height, flags);
-    if (m_pWindow == nullptr) {
-        std::cout << "Window creation fail: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return false;
-    }
+    std::cout << "init success";
+    m_bRunning = true; // everything inited successfuly, start the main loop
 
-    // Create renderer
-    m_pRenderer = SDL_CreateRenderer(m_pWindow, -1, SDL_RENDERER_ACCELERATED);
-    if (m_pRenderer == nullptr) {
-        std::cout << "Renderer creation fail: " << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(m_pWindow);
-        SDL_Quit();
-        return false;
-    }
-
-    // Load texture
-    SDL_Surface* pTempSurface = SDL_LoadBMP("assets/animate.bmp");
-    if (pTempSurface == nullptr) {
-        std::cout << "Failed to load image: " << SDL_GetError() << std::endl;
-        SDL_DestroyRenderer(m_pRenderer);
-        SDL_DestroyWindow(m_pWindow);
-        SDL_Quit();
-        return false;
-    }
-
+ /*
+    SDL_Surface* pTempSurface = IMG_Load("assets/animate.jpg");
     m_pTexture = SDL_CreateTextureFromSurface(m_pRenderer, pTempSurface);
     SDL_FreeSurface(pTempSurface);
+    SDL_QueryTexture(m_pTexture, NULL, NULL, &m_sourceRectangle.w, &m_sourceRectangle.h);
 
-    if (m_pTexture == nullptr) {
-        std::cout << "Failed to create texture: " << SDL_GetError() << std::endl;
-        SDL_DestroyRenderer(m_pRenderer);
-        SDL_DestroyWindow(m_pWindow);
-        SDL_Quit();
-        return false;
-    }
+    m_sourceRectangle.w = 128;
+    m_sourceRectangle.h = 82;
 
-    // Set initial values for source rectangle
-    m_sourceRectangle.x = 0;
-    m_sourceRectangle.y = 0;
-    m_sourceRectangle.w = 155; // Largura da área visível do tigre
-    m_sourceRectangle.h = 97; // Altura da imagem do tigre
+    m_destinationRectangle.x = 0;
+    m_destinationRectangle.y = 0;
+    m_destinationRectangle.w = m_sourceRectangle.w;
+    m_destinationRectangle.h = m_sourceRectangle.h;
+*/
 
-    // Set initial values for destination rectangle
-    m_destinationRectangle.x = 0; // Posição X na janela onde a imagem será renderizada
-    m_destinationRectangle.y = 0; // Posição Y na janela onde a imagem será renderizada
-    m_destinationRectangle.w = m_sourceRectangle.w; // Largura do retângulo de destino
-    m_destinationRectangle.h = m_sourceRectangle.h; // Altura do retângulo de destino
+    m_textureManager.load("assets/animate-alpha.png", "animate", m_pRenderer);
 
-
-    std::cout << "Init success\n";
-    m_bRunning = true;
     return true;
 }
 
+
 void Game::update() {
-    m_sourceRectangle.x = 156 * int(((SDL_GetTicks() / 100 ) % 6));
+    m_currentFrame = int(((SDL_GetTicks()/100) % 6));
 }
 
 
 void Game::render() {
     SDL_RenderClear(m_pRenderer);
-    SDL_RenderCopy(m_pRenderer, m_pTexture, &m_sourceRectangle, &m_destinationRectangle);
+
+    m_textureManager.draw("animate", 0, 0, 128, 82, m_pRenderer);
+    m_textureManager.drawFrame("animate", 100, 100, 128, 82, 1, m_currentFrame, m_pRenderer);
+
     SDL_RenderPresent(m_pRenderer);
+}
+
+void Game::clean() {
+    std::cout << "Cleaning game\n";
+    SDL_DestroyWindow(m_pWindow);
+    SDL_DestroyRenderer(m_pRenderer);
+    SDL_Quit();
 }
 
 void Game::handleEvents() {
@@ -99,14 +100,4 @@ void Game::handleEvents() {
     }
 }
 
-void Game::clean() {
-    std::cout << "Cleaning game\n";
-    SDL_DestroyWindow(m_pWindow);
-    SDL_DestroyRenderer(m_pRenderer);
-    SDL_Quit();
-}
-
-bool Game::running() {
-    return m_bRunning;
-}
 
