@@ -1,23 +1,37 @@
 #ifndef __TextureManager__
 #define __TextureManager__
 
-
-#include <SDL2/SDL_render.h>
-#include <map>
 #include <string>
+#include <map>
+#include "SDL2/SDL.h"
 
-class TextureManager {
-
+class TextureManager
+{
 public:
-    bool load(std::string filename, std::string id, SDL_Renderer* pRenderer);
 
-    // draw
-    void draw(std::string id, int x, int y, int width, int height, SDL_Renderer* pRenderer, SDL_RendererFlip flip = SDL_FLIP_NONE);
+	bool load(std::string fileName, std::string id, SDL_Renderer* pRenderer);
+	void draw(std::string id, int x, int y, int width, int height, SDL_Renderer* pRenderer, SDL_RendererFlip flip = SDL_FLIP_NONE);
+	void drawFrame(std::string id, int x, int y, int width, int height, int currentRow, int currentFrame, SDL_Renderer* pRenderer, SDL_RendererFlip flip = SDL_FLIP_NONE);
 
-    // drawframe
-    void drawFrame(std::string id, int x, int y, int width, int height, int currentRow, int currentFrame, SDL_Renderer* pRenderer, SDL_RendererFlip flip = SDL_FLIP_NONE);
+	static TextureManager* Instance()
+	{
+		if(s_pInstance == 0)
+		{
+			s_pInstance = new TextureManager();
+			return s_pInstance;
+		}
+		return s_pInstance;
+	}
+
 private:
-    std::map<std::string, SDL_Texture*> m_textureMap;
+
+	TextureManager() {}
+
+	std::map<std::string, SDL_Texture*> m_textureMap;
+	static TextureManager* s_pInstance;
+	
 };
 
-#endif // defined(__SDL_Game_Programming_Book__TextureManager__)
+typedef TextureManager TheTextureManager;
+
+#endif // __TextureManager__
